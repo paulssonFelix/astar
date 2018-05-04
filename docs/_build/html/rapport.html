@@ -1,0 +1,223 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="sv">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Undersökning av A* &#8212; A* 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/translations.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Sök" href="search.html" />
+    <link rel="prev" title="API-referens för A*" href="api.html" />
+    <link href="_static/custom.css" rel="stylesheet" type="text/css">
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="undersokning-av-a">
+<h1>Undersökning av A*<a class="headerlink" href="#undersokning-av-a" title="Permalink till denna rubrik">¶</a></h1>
+<div class="section" id="problem">
+<h2>Problem<a class="headerlink" href="#problem" title="Permalink till denna rubrik">¶</a></h2>
+<p>Problemet för denna uppgift är att skriva ett program som i en given karta hittar
+den närmsta vägen från punkt a till punkt b med hjälp av sökalgoritmen A*. Detta
+problem delas upp i två delproblem: <a class="reference internal" href="#skapande-av-kartan">Skapande av kartan</a> och <a class="reference internal" href="#framstallning-av-a-algoritmen">Framställning av
+A* algoritmen</a>.</p>
+</div>
+<div class="section" id="id1">
+<h2><span class="target" id="skapande-av-kartan">Skapande av kartan</span><a class="headerlink" href="#id1" title="Permalink till denna rubrik">¶</a></h2>
+<p>Först skapar jag klassen <code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code> och bestämer med hjälp av
+<code class="xref py py-const docutils literal notranslate"><span class="pre">MAX_SIZE_X</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">MAX_SIZE_Y</span></code> och <code class="xref py py-const docutils literal notranslate"><span class="pre">WALLS</span></code> storleken av kartan
+och antalet hinder som ska genereras:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Konfigurationer för kartan</span>
+<span class="n">MAP_SIZE_X</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">MAP_SIZE_Y</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">OBSTACLES</span> <span class="o">=</span> <span class="mi">20</span>
+
+<span class="k">class</span> <span class="nc">Graph</span><span class="p">():</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_map</span><span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xmax</span> <span class="o">=</span> <span class="n">xmax</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ymax</span> <span class="o">=</span> <span class="n">ymax</span>
+</pre></div>
+</div>
+<p>Sedan skapar jag en metod <code class="xref py py-meth docutils literal notranslate"><span class="pre">generate_map()</span></code> till klassen <code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code> som ska generera kartans
+koordinater och bestämma vilka av dessa som är hinder och vilka som går att gå på.
+Koordinaterna genereras i en nästlad loop som fyller dictionaryn <code class="xref py py-data docutils literal notranslate"><span class="pre">map_</span></code>
+med koordinater tilldelade värdet 1, där <code class="xref py py-data docutils literal notranslate"><span class="pre">xmax</span></code> och <code class="xref py py-data docutils literal notranslate"><span class="pre">ymax</span></code> beskriver
+koordinatsystemets storlek i x- och y-led.
+Jag skapar sedan ytterligare en nästlad loop som slumpar fram alla hinders koordinater
+och tilldelar dem värdet -1.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">def</span> <span class="nf">generate_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">):</span>
+        <span class="n">map_</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Initierar möjliga x- och y-koordinater samt ger dem värdet 1.</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">xmax</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ymax</span><span class="p">):</span>
+                <span class="n">map_</span><span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Bestämmer vilka rutor som är hinder och ger dem värdet -1.</span>
+        <span class="k">for</span> <span class="n">obstacle</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">OBSTACLES</span><span class="p">):</span>
+            <span class="k">while</span> <span class="n">map_</span><span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">map_</span><span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">map_</span>
+</pre></div>
+</div>
+<p>Jag behöver även beräkna vilka rutor som är grannar till en undersökt ruta i en
+given karta, då jag behöver koordinaterna för de möjliga steg som går att utföra.
+Därför skapar jag metoden <code class="xref py py-meth docutils literal notranslate"><span class="pre">neighbors()</span></code> till <code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code> som adderar den undersökta
+rutans <code class="xref py py-data docutils literal notranslate"><span class="pre">x</span></code>-värde med <code class="xref py py-data docutils literal notranslate"><span class="pre">x_step</span></code> och rutans <code class="xref py py-data docutils literal notranslate"><span class="pre">y</span></code>-värde
+med <code class="xref py py-data docutils literal notranslate"><span class="pre">y_step</span></code>, där <code class="xref py py-data docutils literal notranslate"><span class="pre">x_step</span></code> och <code class="xref py py-data docutils literal notranslate"><span class="pre">y_step</span></code> kommer från
+en lista tupler tilldelad namnet <code class="xref py py-data docutils literal notranslate"><span class="pre">possible_steps</span></code>.
+Listan beskriver grannarnas positioner relativt
+den undersökta rutan. Notera att …
+Metoden returnerar sedan en lista med koordinater för möjliga steg:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">def</span> <span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">coords</span>
+        <span class="n">possible_steps</span> <span class="o">=</span> <span class="p">[(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">nbs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">x_step</span><span class="p">,</span> <span class="n">y_step</span> <span class="ow">in</span> <span class="n">possible_steps</span><span class="p">:</span>
+            <span class="n">nb</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">x_step</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">y_step</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">nbs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nb</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nbs</span>
+</pre></div>
+</div>
+<p>Sist skapar jag en väldigt simpel metod <code class="xref py py-meth docutils literal notranslate"><span class="pre">cost()</span></code> som beskriver kostnaden
+för att ta ett steg i kartan:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="nb">next</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h2><span class="target" id="framstallning-av-a-algoritmen">Framställning av A* algoritmen</span><a class="headerlink" href="#id2" title="Permalink till denna rubrik">¶</a></h2>
+<p>Innan jag skriver A* algoritmen så vill jag först bestämma vilken heuristik jag skall
+använda, det vill säga hur jag ska mäta avstånd i koordinatsystemet. I detta
+projekt har jag valt att mäta med manhattanavstånd. Manhattanavståndet kan beskrivas som summan av
+differensen mellan två koordinaters x-värden plus differensen mellan deras y-värden.
+För att beräkna detta skapar jag en funktion <code class="xref py py-func docutils literal notranslate"><span class="pre">heuristic()</span></code> med målets
+och den undersökta rutans koordinater som argument:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">heuristic</span><span class="p">(</span><span class="n">goal</span><span class="p">,</span> <span class="nb">next</span><span class="p">):</span>
+    <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">goal</span>
+    <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="nb">next</span>
+    <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x2</span><span class="p">)</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y1</span> <span class="o">-</span> <span class="n">y2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Nu har det blivit dags att skriva A* algoritmen. Jag börjar med att skapa en
+funktion <a class="reference internal" href="api.html#module-astar" title="astar"><code class="xref py py-func docutils literal notranslate"><span class="pre">astar()</span></code></a> med tre argument: En karta från klassen <code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code>
+samt koordinaterna för start och mål.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">astar</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">goal</span><span class="p">):</span>
+    <span class="n">frontier</span> <span class="o">=</span> <span class="n">PriorityQueue</span><span class="p">()</span>
+    <span class="n">frontier</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">start</span><span class="p">))</span>
+    <span class="n">came_from</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">came_from</span><span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">cost_so_far</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">cost_so_far</span><span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">frontier</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+       <span class="n">current</span> <span class="o">=</span> <span class="n">frontier</span><span class="o">.</span><span class="n">get</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+
+       <span class="c1"># Sätter ihop vägen från mål tillbaka till start.</span>
+       <span class="k">if</span> <span class="n">current</span> <span class="o">==</span> <span class="n">goal</span><span class="p">:</span>
+           <span class="n">path</span> <span class="o">=</span> <span class="p">[]</span>
+           <span class="k">while</span> <span class="n">current</span><span class="p">:</span>
+               <span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+               <span class="n">current</span> <span class="o">=</span> <span class="n">came_from</span><span class="p">[</span><span class="n">current</span><span class="p">]</span>
+           <span class="k">return</span> <span class="n">path</span>
+
+       <span class="c1"># Väljer bästa väg utifrån lägsta kostnad.</span>
+       <span class="k">for</span> <span class="nb">next</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">current</span><span class="p">):</span>
+           <span class="n">new_cost</span> <span class="o">=</span> <span class="n">cost_so_far</span><span class="p">[</span><span class="n">current</span><span class="p">]</span> <span class="o">+</span> <span class="n">graph</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="nb">next</span><span class="p">)</span>
+           <span class="k">if</span> <span class="nb">next</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cost_so_far</span> <span class="ow">or</span> <span class="n">new_cost</span> <span class="o">&lt;</span> <span class="n">cost_so_far</span><span class="p">[</span><span class="nb">next</span><span class="p">]:</span>
+               <span class="n">cost_so_far</span><span class="p">[</span><span class="nb">next</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_cost</span>
+               <span class="n">priority</span> <span class="o">=</span> <span class="n">new_cost</span> <span class="o">+</span> <span class="n">heuristic</span><span class="p">(</span><span class="n">goal</span><span class="p">,</span> <span class="nb">next</span><span class="p">)</span>
+               <span class="n">frontier</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">priority</span><span class="p">,</span> <span class="nb">next</span><span class="p">))</span>
+               <span class="n">came_from</span><span class="p">[</span><span class="nb">next</span><span class="p">]</span> <span class="o">=</span> <span class="n">current</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Innehållsförteckning</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Undersökning av A*</a><ul>
+<li><a class="reference internal" href="#problem">Problem</a></li>
+<li><a class="reference internal" href="#id1">Skapande av kartan</a></li>
+<li><a class="reference internal" href="#id2">Framställning av A* algoritmen</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="api.html" title="Föregående kapitel">API-referens för A*</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>Denna Sida</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rapport.rst.txt"
+            rel="nofollow">Visa källfil</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Snabbsök</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Gå" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Felix Paulsson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/rapport.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
