@@ -93,7 +93,7 @@ if __name__ == "__main__":
     # Skapar en karta.
     graph = Graph(MAP_SIZE_X, MAP_SIZE_Y)
 
-    # Hitta närmsta vägen från det övre vänstra hörnet till det nedre högra hörnet.
+    # Hittar närmsta vägen från det övre vänstra hörnet till det nedre högra hörnet.
     path = astar(graph, (0, 0), (MAP_SIZE_X - 1, MAP_SIZE_Y - 1))
 
     SYMBOLS = { 1: '.',

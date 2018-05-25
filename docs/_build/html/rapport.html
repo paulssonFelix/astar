@@ -39,7 +39,7 @@ A* algoritmen</a>.</p>
 <div class="section" id="id1">
 <h2><span class="target" id="skapande-av-kartan">Skapande av kartan</span><a class="headerlink" href="#id1" title="Permalink till denna rubrik">¶</a></h2>
 <p>Först skapar jag klassen <code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code> och bestämer med hjälp av
-<code class="xref py py-const docutils literal notranslate"><span class="pre">MAX_SIZE_X</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">MAX_SIZE_Y</span></code> och <code class="xref py py-const docutils literal notranslate"><span class="pre">WALLS</span></code> storleken av kartan
+<code class="xref py py-const docutils literal notranslate"><span class="pre">MAX_SIZE_X</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">MAX_SIZE_Y</span></code> och <code class="xref py py-const docutils literal notranslate"><span class="pre">OBSTACLES</span></code> storleken av kartan
 och antalet hinder som ska genereras:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Konfigurationer för kartan</span>
 <span class="n">MAP_SIZE_X</span> <span class="o">=</span> <span class="mi">20</span>
@@ -55,9 +55,9 @@ och antalet hinder som ska genereras:</p>
 </div>
 <p>Sedan skapar jag en metod <code class="xref py py-meth docutils literal notranslate"><span class="pre">generate_map()</span></code> till klassen <code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code> som ska generera kartans
 koordinater och bestämma vilka av dessa som är hinder och vilka som går att gå på.
-Koordinaterna genereras i en nästlad loop som fyller dictionaryn <code class="xref py py-data docutils literal notranslate"><span class="pre">map_</span></code>
-med koordinater tilldelade värdet 1, där <code class="xref py py-data docutils literal notranslate"><span class="pre">xmax</span></code> och <code class="xref py py-data docutils literal notranslate"><span class="pre">ymax</span></code> beskriver
-koordinatsystemets storlek i x- och y-led.
+Koordinaterna genereras i en nästlad loop som tilldelar dem värdet 1 och lägger dem
+i dictionaryn <code class="xref py py-data docutils literal notranslate"><span class="pre">map_</span></code>. Variablerna <code class="xref py py-data docutils literal notranslate"><span class="pre">xmax</span></code> och <code class="xref py py-data docutils literal notranslate"><span class="pre">ymax</span></code>
+används i loopen för att beskriva koordinatsystemets storlek i x- och y-led.
 Jag skapar sedan ytterligare en nästlad loop som slumpar fram alla hinders koordinater
 och tilldelar dem värdet -1.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">def</span> <span class="nf">generate_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">):</span>
@@ -81,15 +81,16 @@ och tilldelar dem värdet -1.</p>
         <span class="k">return</span> <span class="n">map_</span>
 </pre></div>
 </div>
-<p>Jag behöver även beräkna vilka rutor som är grannar till en undersökt ruta i en
-given karta, då jag behöver koordinaterna för de möjliga steg som går att utföra.
-Därför skapar jag metoden <code class="xref py py-meth docutils literal notranslate"><span class="pre">neighbors()</span></code> till <code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code> som adderar den undersökta
-rutans <code class="xref py py-data docutils literal notranslate"><span class="pre">x</span></code>-värde med <code class="xref py py-data docutils literal notranslate"><span class="pre">x_step</span></code> och rutans <code class="xref py py-data docutils literal notranslate"><span class="pre">y</span></code>-värde
-med <code class="xref py py-data docutils literal notranslate"><span class="pre">y_step</span></code>, där <code class="xref py py-data docutils literal notranslate"><span class="pre">x_step</span></code> och <code class="xref py py-data docutils literal notranslate"><span class="pre">y_step</span></code> kommer från
-en lista tupler tilldelad namnet <code class="xref py py-data docutils literal notranslate"><span class="pre">possible_steps</span></code>.
-Listan beskriver grannarnas positioner relativt
-den undersökta rutan. Notera att …
-Metoden returnerar sedan en lista med koordinater för möjliga steg:</p>
+<p>Jag ska även beräkna vilka rutor som är grannar till en undersökt ruta i en
+given karta, då jag behöver veta koordinaterna för de steg som är möjliga att utföra.
+Därför skapar jag metoden <code class="xref py py-meth docutils literal notranslate"><span class="pre">neighbors()</span></code> till klassen <code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code>
+som ska addera den undersökta rutans <code class="xref py py-data docutils literal notranslate"><span class="pre">x</span></code>-värde med <code class="xref py py-data docutils literal notranslate"><span class="pre">x_step</span></code>
+och rutans <code class="xref py py-data docutils literal notranslate"><span class="pre">y</span></code>-värde med <code class="xref py py-data docutils literal notranslate"><span class="pre">y_step</span></code>, där <code class="xref py py-data docutils literal notranslate"><span class="pre">x_step</span></code> och
+<code class="xref py py-data docutils literal notranslate"><span class="pre">y_step</span></code> kommer från en lista tupler vid namnet
+<code class="xref py py-data docutils literal notranslate"><span class="pre">possible_steps</span></code>. Listan beskriver grannarnas positioner relativt
+den undersökta rutan. Notera att jag tilldelar <code class="docutils literal notranslate"><span class="pre">self.map.get(nb,</span> <span class="pre">-1)</span></code> värdet
+-1 om metoden undersöker en ruta som inte finns definierad i koordinatsystemet,
+detta för att undvika eventuella fel. Metoden returnerar sedan en lista med koordinater för möjliga steg:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">def</span> <span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">coords</span>
         <span class="n">possible_steps</span> <span class="o">=</span> <span class="p">[(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
@@ -125,7 +126,10 @@ och den undersökta rutans koordinater som argument:</p>
 </div>
 <p>Nu har det blivit dags att skriva A* algoritmen. Jag börjar med att skapa en
 funktion <a class="reference internal" href="api.html#module-astar" title="astar"><code class="xref py py-func docutils literal notranslate"><span class="pre">astar()</span></code></a> med tre argument: En karta från klassen <code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code>
-samt koordinaterna för start och mål.</p>
+samt koordinaterna för start och mål. Sedan skapar jag <code class="xref py py-data docutils literal notranslate"><span class="pre">frontier</span></code>, en så kallad ”prioriterad kö”,
+som kommer att behövas för att kunna prioritera undersökningen av den kortaste
+möjliga vägen mellan start och mål. Jag lägger till startpositionen i
+<code class="xref py py-data docutils literal notranslate"><span class="pre">frontier</span></code> med prioriteringen 0.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">astar</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">goal</span><span class="p">):</span>
     <span class="n">frontier</span> <span class="o">=</span> <span class="n">PriorityQueue</span><span class="p">()</span>
     <span class="n">frontier</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">start</span><span class="p">))</span>
@@ -133,8 +137,24 @@ samt koordinaterna för start och mål.</p>
     <span class="n">came_from</span><span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="n">cost_so_far</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">cost_so_far</span><span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-
-    <span class="k">while</span> <span class="ow">not</span> <span class="n">frontier</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+</pre></div>
+</div>
+<p>Sedan skapar jag en while-loop som hämtar den ruta som står först i <code class="xref py py-data docutils literal notranslate"><span class="pre">frontier</span></code>.
+I while-loopen skapar jag en for-loop som ska beräkna längden av vägen mellan
+start och mål för den nuvarande rutans alla grannar. Om den undersökta koordinaten
+inte har något värde från en tidigare beräkning eller har ett värde som är större
+än den nya beräkningen så tilldelas den undersökta koordinaten värdet från
+den nya beräkning. Den undersökta rutan läggs även till i dictionaryn
+<code class="xref py py-data docutils literal notranslate"><span class="pre">came_from</span></code> och tilldelas där föregående rutas koordinat som värde.
+Genom att göra detta så går det följa vilka steg som togs för att gå den kortaste
+vägen till målet för att sedan rita upp denna väg. Sammansättningen av de steg som skapar den kortaste vägen
+görs i loopen <code class="docutils literal notranslate"><span class="pre">while</span> <span class="pre">current:</span></code>, där den lägger till den nuvarande koordinaten
+(vilket i detta fall är den sist undersökta, förhoppningsvis även målets
+koordinat) i listan <code class="xref py py-data docutils literal notranslate"><span class="pre">path</span></code>, för att sedan byta den ”nuvarande” koordinaten
+mot den granne som har den beräknat kortaste vägen (<code class="docutils literal notranslate"><span class="pre">current</span> <span class="pre">=</span> <span class="pre">came_from[current]</span></code>).
+Denna loop fortsätter tills startrutan är den ”nuvarande” koordinaten, då
+<code class="docutils literal notranslate"><span class="pre">came_from[start]</span> <span class="pre">=</span> <span class="pre">None</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">while</span> <span class="ow">not</span> <span class="n">frontier</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
        <span class="n">current</span> <span class="o">=</span> <span class="n">frontier</span><span class="o">.</span><span class="n">get</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
 
        <span class="c1"># Sätter ihop vägen från mål tillbaka till start.</span>
@@ -153,6 +173,35 @@ samt koordinaterna för start och mål.</p>
                <span class="n">priority</span> <span class="o">=</span> <span class="n">new_cost</span> <span class="o">+</span> <span class="n">heuristic</span><span class="p">(</span><span class="n">goal</span><span class="p">,</span> <span class="nb">next</span><span class="p">)</span>
                <span class="n">frontier</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">priority</span><span class="p">,</span> <span class="nb">next</span><span class="p">))</span>
                <span class="n">came_from</span><span class="p">[</span><span class="nb">next</span><span class="p">]</span> <span class="o">=</span> <span class="n">current</span>
+</pre></div>
+</div>
+<p>Till sist ska jag skriva koden som kör själva sökalgorithmen. Jag börjar med att
+tilldela variabeln <code class="xref py py-data docutils literal notranslate"><span class="pre">graph</span></code> en karta med storleken given av <code class="xref py py-const docutils literal notranslate"><span class="pre">MAX_SIZE_X</span></code>
+och <code class="xref py py-const docutils literal notranslate"><span class="pre">MAX_SIZE_Y</span></code>. Sedan tilldelas en ny variabel <code class="xref py py-data docutils literal notranslate"><span class="pre">path</span></code> värdet
+av funktionen <a class="reference internal" href="api.html#module-astar" title="astar"><code class="xref py py-func docutils literal notranslate"><span class="pre">astar()</span></code></a> med följande argument: kartan <code class="xref py py-data docutils literal notranslate"><span class="pre">graph</span></code>,
+koordinaten för övre vänstra hörnet (start) och koordinaten för nedre högra hörnet
+(mål). Sist skapar jag en nästlad loop som hanterar ritandet av kartan där alla hinder
+är markerade med ”#”, vägen är markerad med ”X” och resten av kartans koordinater
+representeras av punkter.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># Skapar en karta.</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">MAP_SIZE_X</span><span class="p">,</span> <span class="n">MAP_SIZE_Y</span><span class="p">)</span>
+
+    <span class="c1"># Hittar närmsta vägen från det övre vänstra hörnet till det nedre högra hörnet.</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">astar</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">MAP_SIZE_X</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">MAP_SIZE_Y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">SYMBOLS</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span>
+               <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;#&#39;</span><span class="p">}</span>
+
+    <span class="c1"># Ritar upp kartan med &quot;.&quot; som tomma ruton, &quot;#&quot; som hinder och &quot;X&quot; som den närmsta vägen.</span>
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MAP_SIZE_Y</span><span class="p">):</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MAP_SIZE_X</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s1">&#39;X&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="n">SYMBOLS</span><span class="p">[</span><span class="n">graph</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))]</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
